@@ -39,19 +39,20 @@
 //!
 use std::collections::BTreeMap;
 use std::env::var_os as env;
-use std::ffi::{OsStr, OsString};
-use std::path::{Path, PathBuf};
+use std::ffi::OsString;
+
+/// re-exported for convinience
 pub use std::process::{Command, Stdio};
 
-use cargo_metadata::{Message, MetadataCommand};
+use cargo_metadata::{camino::Utf8PathBuf, Message};
 
 pub struct BinTest {
-    build_binaries: BTreeMap<OsString, PathBuf>,
+    build_binaries: BTreeMap<String, Utf8PathBuf>,
 }
 
 impl BinTest {
     pub fn new() -> BinTest {
-        //TODO: figure out which profile
+        //PLANNED: figure out which profile
         let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")))
             .arg("build")
             .arg("--message-format")
@@ -60,19 +61,26 @@ impl BinTest {
             .spawn()
             .expect("failed to execute 'cargo build'");
 
-        let build_binaries = BTreeMap::<OsString, PathBuf>::new();
+        let mut build_binaries = BTreeMap::new();
 
         let reader = std::io::BufReader::new(cargo_build.stdout.take().unwrap());
         for message in cargo_metadata::Message::parse_stream(reader) {
             if let Message::CompilerArtifact(artifact) = message.unwrap() {
-                println!("{:?}", artifact);
+                if let Some(executable) = artifact.executable {
+                    build_binaries.insert(
+                        String::from(executable.file_name().expect("Missing filename")),
+                        executable.to_path_buf(),
+                    );
+                }
             }
         }
 
         BinTest { build_binaries }
     }
 
-    //PLANNED: pub fn binaries(name: OsStr) -> Iterator {}
+    pub fn list_binaries(&self) -> std::collections::btree_map::Iter<'_, String, Utf8PathBuf> {
+        self.build_binaries.iter()
+    }
 
     //WIP: pub fn command(name: OsStr) -> Command {}
 }
