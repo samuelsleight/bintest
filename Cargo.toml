@@ -1,9 +1,9 @@
 [package]
 name = "bintest"
-version = "0.0.2"
+version = "0.1.0"
 authors = ["Christian Thäter <ct@pipapo.org>"]
 edition = "2018"
-description = "Testing the binaries build by a bin crate"
+description = "Testing the executables build by a bin crate"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/cehteh/bintest.git"
 keywords = ["testing", "cargo"]
