@@ -1,4 +1,4 @@
-//! Testing the build binaries of a bin crate.
+//! Testing the binaries build by a bin crate.
 //!
 //!
 //! # Description
