@@ -20,22 +20,31 @@
 //! identifying and locating the build binaries. On request it creates a std::process::Command
 //! for the binary which can be used for any further testing.
 //!
+//! BinTest will panic on any error and not offer any error handling. This is deliberate to
+//! make things simple.
+//!
 //!
 //! # Example
 //!
-//!  #[test]
-//!  fn test() {
-//!    // BinTest::new() will run 'cargo build' and registers all build binaries
-//!    let bintest = BinTest::new();
+//! ```rust
+//! #[test]
+//! fn test() {
+//!   // BinTest::new() will run 'cargo build' and registers all build binaries
+//!   let bintest = BinTest::new();
 //!
-//!    // BinTest::command() looks up binary by its name and creates a process::Command from it
-//!    let command = bintest.command("name");
+//!   // List the executables build
+//!   for (k,v) in bintest.list_binaries() {
+//!     println!("{} @ {}", k, v);
+//!   }
 //!
-//!    //WIP: this command can then be used for testing
+//!   // BinTest::command() looks up binary by its name and creates a process::Command from it
+//!   let command = bintest.command("name");
 //!
-//!  }
+//!   // this command can then be used for testing
+//!   command.arg("help").spawn();
 //!
-//!
+//! }
+//! ```
 //!
 use std::collections::BTreeMap;
 use std::env::var_os as env;
@@ -46,11 +55,13 @@ pub use std::process::{Command, Stdio};
 
 use cargo_metadata::{camino::Utf8PathBuf, Message};
 
+/// Access to binaries build by 'cargo build'
 pub struct BinTest {
     build_binaries: BTreeMap<String, Utf8PathBuf>,
 }
 
 impl BinTest {
+    /// Runs 'cargo build' and stores all build binaries
     pub fn new() -> BinTest {
         //PLANNED: figure out which profile
         let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")))
@@ -78,10 +89,12 @@ impl BinTest {
         BinTest { build_binaries }
     }
 
+    /// Gives an `(name, path)` iterator over all binaries found
     pub fn list_binaries(&self) -> std::collections::btree_map::Iter<'_, String, Utf8PathBuf> {
         self.build_binaries.iter()
     }
 
+    /// Constructs a 'std::process::Command' for the given binary name
     pub fn command(&self, name: &str) -> Command {
         Command::new(
             self.build_binaries

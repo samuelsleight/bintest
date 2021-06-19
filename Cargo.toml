@@ -1,6 +1,6 @@
 [package]
 name = "bintest"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Christian Thäter <ct@pipapo.org>"]
 edition = "2018"
 description = "Run configuration tests from build.rs and set available features"
