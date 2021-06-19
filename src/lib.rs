@@ -82,5 +82,11 @@ impl BinTest {
         self.build_binaries.iter()
     }
 
-    //WIP: pub fn command(name: OsStr) -> Command {}
+    pub fn command(&self, name: &str) -> Command {
+        Command::new(
+            self.build_binaries
+                .get(name)
+                .unwrap_or_else(|| panic!("no such binary <<{}>>", name)),
+        )
+    }
 }
