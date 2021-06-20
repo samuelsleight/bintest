@@ -17,7 +17,7 @@
 //!
 //! BinTest solve these problems by running 'cargo build' at test time, parsing its output for
 //! identifying and locating the build executables. On request it creates a std::process::Command
-//! for the binary which can be used for any further testing.
+//! for the executable which can be used for any further testing.
 //!
 //! BinTest will panic on any error and not offer any error handling. This is deliberate to
 //! make things simple.
@@ -60,7 +60,8 @@ pub struct BinTest {
 }
 
 impl BinTest {
-    /// Runs 'cargo build' and stores all build executables
+    /// Runs 'cargo build' and register all build executables.
+    /// Executables are identified by their name, without path and filename extension.
     pub fn new() -> BinTest {
         //PLANNED: figure out which profile
         let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")))
@@ -78,7 +79,7 @@ impl BinTest {
             if let Message::CompilerArtifact(artifact) = message.unwrap() {
                 if let Some(executable) = artifact.executable {
                     build_executables.insert(
-                        String::from(executable.file_name().expect("Missing filename")),
+                        String::from(executable.file_stem().expect("Missing filename")),
                         executable.to_path_buf(),
                     );
                 }
