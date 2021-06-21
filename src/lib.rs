@@ -59,27 +59,36 @@ pub struct BinTest {
     build_executables: BTreeMap<String, Utf8PathBuf>,
 }
 
+#[cfg(not(debug_assertions))]
+const RELEASE_BUILD: bool = true;
+
+#[cfg(debug_assertions)]
+const RELEASE_BUILD: bool = false;
+
 impl BinTest {
     /// Runs 'cargo build' and register all build executables.
     /// Executables are identified by their name, without path and filename extension.
     pub fn new() -> BinTest {
-        //PLANNED: figure out which profile
-        let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")))
-            .arg("build")
-            .arg("--message-format")
-            .arg("json")
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("failed to execute 'cargo build'");
+        let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")));
+
+        cargo_build
+            .args(["build", "--message-format", "json"])
+            .stdout(Stdio::piped());
+
+        if RELEASE_BUILD {
+            cargo_build.arg("--release");
+        }
+
+        let mut cargo_result = cargo_build.spawn().expect("'cargo build' success");
 
         let mut build_executables = BTreeMap::new();
 
-        let reader = std::io::BufReader::new(cargo_build.stdout.take().unwrap());
+        let reader = std::io::BufReader::new(cargo_result.stdout.take().unwrap());
         for message in cargo_metadata::Message::parse_stream(reader) {
             if let Message::CompilerArtifact(artifact) = message.unwrap() {
                 if let Some(executable) = artifact.executable {
                     build_executables.insert(
-                        String::from(executable.file_stem().expect("Missing filename")),
+                        String::from(executable.file_stem().expect("filename")),
                         executable.to_path_buf(),
                     );
                 }
