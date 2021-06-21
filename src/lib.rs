@@ -112,3 +112,10 @@ impl BinTest {
         )
     }
 }
+
+impl Default for BinTest {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
