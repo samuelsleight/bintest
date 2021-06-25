@@ -18,3 +18,8 @@ There are some problems to overcome the cargo limitations.
 BinTest solve these problems by running 'cargo build' at test time, parsing its output for
 identifying and locating the build executables. On request it creates a std::process::Command
 for the binary which can be used for any further testing.
+
+# See Also
+
+The testcall crate uses this to build tests and assertions on top of the commands created by
+bintest.

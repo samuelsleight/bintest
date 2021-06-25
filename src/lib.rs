@@ -45,6 +45,12 @@
 //! }
 //! ```
 //!
+//!
+//! # See Also
+//!
+//! The testcall crate uses this to build tests and assertions on top of the commands created by
+//! bintest.use std::collections::BTreeMap;
+//!
 use std::collections::BTreeMap;
 use std::env::var_os as env;
 use std::ffi::OsString;
