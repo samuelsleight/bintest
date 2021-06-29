@@ -49,7 +49,7 @@
 //! # See Also
 //!
 //! The testcall crate uses this to build tests and assertions on top of the commands created by
-//! bintest.use std::collections::BTreeMap;
+//! bintest.
 //!
 use std::collections::BTreeMap;
 use std::env::var_os as env;
@@ -65,6 +65,7 @@ pub struct BinTest {
     build_executables: BTreeMap<String, Utf8PathBuf>,
 }
 
+//PLANNED: needs some better way to figure out what profile is active
 #[cfg(not(debug_assertions))]
 const RELEASE_BUILD: bool = true;
 
