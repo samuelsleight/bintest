@@ -32,7 +32,7 @@
 //!   let executables = BinTest::new();
 //!
 //!   // List the executables build
-//!   for (k,v) in bintest.list_executables() {
+//!   for (k,v) in executables.list_executables() {
 //!     println!("{} @ {}", k, v);
 //!   }
 //!
@@ -125,4 +125,3 @@ impl Default for BinTest {
         Self::new()
     }
 }
-
