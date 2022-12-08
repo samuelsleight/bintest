@@ -1,6 +1,6 @@
 [package]
 name = "bintest"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["Christian Thäter <ct@pipapo.org>"]
 edition = "2018"
 description = "Testing the executables build by a bin crate"
