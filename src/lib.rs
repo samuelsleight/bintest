@@ -65,6 +65,7 @@ use cargo_metadata::Message;
 pub struct BinTestBuilder {
     build_workspace: bool,
     specific_executable: Option<String>,
+    quiet: bool,
 }
 
 /// Access to binaries build by 'cargo build'
@@ -86,6 +87,7 @@ impl BinTestBuilder {
         Self {
             build_workspace: false,
             specific_executable: None,
+            quiet: false,
         }
     }
 
@@ -105,6 +107,12 @@ impl BinTestBuilder {
             specific_executable: Some(executable.into()),
             ..self
         }
+    }
+
+    /// Allow disabling extra output from the `cargo build` run
+    #[must_use]
+    pub fn quiet(self, quiet: bool) -> Self {
+        Self { quiet, ..self }
     }
 
     /// Constructs the `BinTest`, running `cargo build` with the configured options
@@ -151,6 +159,10 @@ impl BinTest {
 
         if let Some(executable) = builder.specific_executable {
             cargo_build.args(["--bin", &executable]);
+        }
+
+        if builder.quiet {
+            cargo_build.arg("--quiet");
         }
 
         let mut cargo_result = cargo_build.spawn().expect("'cargo build' success");
