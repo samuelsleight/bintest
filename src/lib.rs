@@ -37,6 +37,14 @@ pub use std::process::{Command, Stdio};
 pub use cargo_metadata::camino::Utf8PathBuf;
 use cargo_metadata::Message;
 
+/// Allows configuration of a workspace to find an executable in
+#[must_use]
+pub struct BinTestBuilder {
+    build_workspace: bool,
+    specific_executable: Option<String>,
+    quiet: bool,
+}
+
 /// Access to binaries build by 'cargo build'
 pub struct BinTest {
     build_executables: BTreeMap<String, Utf8PathBuf>,
@@ -49,11 +57,81 @@ const RELEASE_BUILD: bool = true;
 #[cfg(debug_assertions)]
 const RELEASE_BUILD: bool = false;
 
+impl BinTestBuilder {
+    /// Constructs a default builder that does not build workspace executables
+    const fn new() -> BinTestBuilder {
+        Self {
+            build_workspace: false,
+            specific_executable: None,
+            quiet: false,
+        }
+    }
+
+    /// Allow building all executables in a workspace
+    pub fn build_workspace(self, workspace: bool) -> Self {
+        Self {
+            build_workspace: workspace,
+            ..self
+        }
+    }
+
+    /// Allow only building a specific executable in the case of multiple in a workspace/package
+    pub fn build_executable<S: Into<String>>(self, executable: S) -> Self {
+        Self {
+            specific_executable: Some(executable.into()),
+            ..self
+        }
+    }
+
+    /// Allow disabling extra output from the `cargo build` run
+    pub fn quiet(self, quiet: bool) -> Self {
+        Self { quiet, ..self }
+    }
+
+    /// Constructs the `BinTest`, running `cargo build` with the configured options
+    #[must_use]
+    pub fn build(self) -> BinTest {
+        BinTest::new_with_builder(self)
+    }
+}
+
 impl BinTest {
+    /// Creates a `BinTestBuilder` for further customization.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use bintest::BinTest;
+    ///
+    /// let executables: BinTest = BinTest::with().quiet(true).build();
+    /// ```
+    pub const fn with() -> BinTestBuilder {
+        BinTestBuilder::new()
+    }
+
     /// Runs 'cargo build' and register all build executables.
     /// Executables are identified by their name, without path and filename extension.
     #[must_use]
     pub fn new() -> BinTest {
+        Self::new_with_builder(BinTestBuilder::new())
+    }
+
+    /// Gives an `(name, path)` iterator over all executables found
+    pub fn list_executables(&self) -> std::collections::btree_map::Iter<'_, String, Utf8PathBuf> {
+        self.build_executables.iter()
+    }
+
+    /// Constructs a `std::process::Command` for the given executable name
+    #[must_use]
+    pub fn command(&self, name: &str) -> Command {
+        Command::new(
+            self.build_executables
+                .get(name)
+                .unwrap_or_else(|| panic!("no such executable <<{name}>>")),
+        )
+    }
+
+    fn new_with_builder(builder: BinTestBuilder) -> Self {
         let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")));
 
         cargo_build
@@ -62,6 +140,18 @@ impl BinTest {
 
         if RELEASE_BUILD {
             cargo_build.arg("--release");
+        }
+
+        if builder.build_workspace {
+            cargo_build.arg("--workspace");
+        }
+
+        if let Some(executable) = builder.specific_executable {
+            cargo_build.args(["--bin", &executable]);
+        }
+
+        if builder.quiet {
+            cargo_build.arg("--quiet");
         }
 
         let mut cargo_result = cargo_build.spawn().expect("'cargo build' success");
@@ -81,21 +171,6 @@ impl BinTest {
         }
 
         BinTest { build_executables }
-    }
-
-    /// Gives an `(name, path)` iterator over all executables found
-    pub fn list_executables(&self) -> std::collections::btree_map::Iter<'_, String, Utf8PathBuf> {
-        self.build_executables.iter()
-    }
-
-    /// Constructs a `std::process::Command` for the given executable name
-    #[must_use]
-    pub fn command(&self, name: &str) -> Command {
-        Command::new(
-            self.build_executables
-                .get(name)
-                .unwrap_or_else(|| panic!("no such executable <<{name}>>")),
-        )
     }
 }
 
