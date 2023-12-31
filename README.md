@@ -21,5 +21,6 @@ for the binary which can be used for any further testing.
 
 # See Also
 
-The testcall crate uses this to build tests and assertions on top of the commands created by
-bintest.
+The 'testcall' crate uses this to build tests and assertions on top of the commands created by
+bintest. The 'testpath' crate lets you run test in specially created temporary directories to
+provide an filesystem environment for tests.

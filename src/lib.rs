@@ -1,27 +1,4 @@
-//! Testing the executables build by a bin crate.
-//!
-//!
-//! # Description
-//!
-//! 'cargo' tests by default have no support for running tests on a build executable.
-//! This crate solves this.
-//!
-//!
-//! # How It Works
-//!
-//! There are some problems to overcome the cargo limitations.
-//!
-//! 1. Running cargo tests does not depend on the executables build, by default they are not
-//!    compiled at test time.
-//! 2. There are no standard facilities to locate and execute them in a test.
-//!
-//! BinTest solve these problems by running 'cargo build' at test time, parsing its output for
-//! identifying and locating the build executables. On request it creates a std::process::Command
-//! for the executable which can be used for any further testing.
-//!
-//! BinTest will panic on any error and not offer any error handling. This is deliberate to
-//! make things simple.
-//!
+#![doc = include_str!("../README.md")]
 //!
 //! # Example
 //!
@@ -75,6 +52,7 @@ const RELEASE_BUILD: bool = false;
 impl BinTest {
     /// Runs 'cargo build' and register all build executables.
     /// Executables are identified by their name, without path and filename extension.
+    #[must_use]
     pub fn new() -> BinTest {
         let mut cargo_build = Command::new(env("CARGO").unwrap_or_else(|| OsString::from("cargo")));
 
@@ -110,12 +88,13 @@ impl BinTest {
         self.build_executables.iter()
     }
 
-    /// Constructs a 'std::process::Command' for the given executable name
+    /// Constructs a `std::process::Command` for the given executable name
+    #[must_use]
     pub fn command(&self, name: &str) -> Command {
         Command::new(
             self.build_executables
                 .get(name)
-                .unwrap_or_else(|| panic!("no such executable <<{}>>", name)),
+                .unwrap_or_else(|| panic!("no such executable <<{name}>>")),
         )
     }
 }

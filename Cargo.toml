@@ -1,15 +1,36 @@
 [package]
 name = "bintest"
-version = "1.0.3"
+version = "1.1.0-devel"
 authors = ["Christian Thäter <ct@pipapo.org>"]
-edition = "2018"
+edition = "2021"
 description = "Testing the executables build by a bin crate"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/cehteh/bintest.git"
 keywords = ["testing", "cargo"]
+categories = ["development-tools::testing"]
+
+# 1.70.0 is the first version with 'sparse' protocol support
+# We don't care about supporting anything older because its slooooow to test
+rust-version = "1.70.0"
 
 [dependencies]
-cargo_metadata = ">= 0.13, <=0.16"
+cargo_metadata = "0.18.1"
 
 [badges]
 maintenance = { status = "actively-developed" }
+
+[lints.rust]
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = "warn"
+cargo_common_metadata = "warn"
+doc_markdown = "warn"
+missing_panics_doc = "allow"
+must_use_candidate = "warn"
+missing_const_for_fn = "warn"
+semicolon_if_nothing_returned = "warn"
+
+[lints.rustdoc]
+missing_crate_level_docs = "warn"
+
