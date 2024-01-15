@@ -154,11 +154,11 @@ impl BinTest {
             cargo_build.arg("--quiet");
         }
 
-        let mut cargo_result = cargo_build.spawn().expect("'cargo build' success");
+        let cargo_output = cargo_build.output().expect("'cargo build' success");
 
         let mut build_executables = BTreeMap::new();
 
-        let reader = std::io::BufReader::new(cargo_result.stdout.take().unwrap());
+        let reader = std::io::BufReader::new(std::io::Cursor::new(cargo_output.stdout));
         for message in cargo_metadata::Message::parse_stream(reader) {
             if let Message::CompilerArtifact(artifact) = message.unwrap() {
                 if let Some(executable) = artifact.executable {
